@@ -13,7 +13,7 @@
         "paths": {
             "@ijstech/components": ["node_modules/@ijstech/components"],
             "@modules/*": ["modules/*"],
-            "@scom/scom-multipage-launcher": ["ref"]
+            "@scom/scom-book": ["ref"]
         }
     },
     "include": ["modules/**/*.ts","modules/**/*.tsx"],

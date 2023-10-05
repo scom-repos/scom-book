@@ -1,0 +1,10 @@
+{
+    "name": "@scom/scom-book",
+    "type": "widget",
+    "version": "0.1.0",
+    "dependencies": [
+        "@ijstech/components",
+        "@scom/scom-pages-menu",
+        "@scom/scom-page-viewer"
+    ]
+}

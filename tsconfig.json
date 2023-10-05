@@ -12,16 +12,11 @@
     "declaration": false,
     "baseUrl": ".",
     "paths": {
-      "@scom-multipage-launcher/*": [
+      "@scom-book/*": [
         "src/*"
       ]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "test/modules/module1/data.ts"
-  ],
   "exclude": [
     "node_modules"
   ]

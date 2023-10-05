@@ -1,11 +1,11 @@
 import { Module, customModule, Container } from '@ijstech/components';
-import ScomMultipageLauncher from '@scom/scom-multipage-launcher'
+import ScomBook from '@scom/scom-book'
 import { defaultData } from './data'
 
 @customModule
 export default class Module1 extends Module {
 
-    private launcher: ScomMultipageLauncher;
+    private launcher: ScomBook;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -22,7 +22,7 @@ export default class Module1 extends Module {
     render() {
         return <i-panel>
 
-            <i-scom-multipage-launcher></i-scom-multipage-launcher>
+            <i-scom-book data={defaultData}></i-scom-book>
 
         </i-panel>
     }

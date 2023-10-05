@@ -1,6 +1,5 @@
 {
   "env": "testnet",
-  "main": "@scom/dapp",
   "assets": "@modules/assets",
   "moduleDir": "modules",
   "modules": {
@@ -13,7 +12,7 @@
   },
   "dependencies": {
     "@scom/dapp": "*",
-    "@scom/scom-multipage-launcher": "*"
+    "@scom/scom-book": "*"
   },
   "menus": [
     {
