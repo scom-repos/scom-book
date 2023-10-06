@@ -14,7 +14,7 @@ import {
 import PagesMenu from '@scom/scom-pages-menu';
 import { IPagesMenu, IPagesMenuItem } from '@scom/scom-pages-menu';
 import PageViewer from '@scom/scom-page-viewer'
-import { viewerStyle } from './index.css';
+import { viewerStyle, pagingStyle } from './index.css';
 import { IBookPage } from './interface';
 export { IBookPage }
 
@@ -41,6 +41,11 @@ export default class ScomBook extends Module {
     private pagesMenu: PagesMenu;
     private baseUrl: string;
     private cidMap: Map<string, any> = new Map(); // <cid, sconfig>
+    private labelNext: Label;
+    private labelPrev: Label;
+    private nextPage: HStack;
+    private prevPage: HStack;
+    private _flattenBookPages: IBookPage[];
 
     static async create(options?: ScomBookElement, parent?: Container) {
         let self = new this(parent, options);
@@ -54,6 +59,8 @@ export default class ScomBook extends Module {
 
     setData(value: IBookPage[]) {
         this._data = value;
+        this._flattenBookPages = this.flatBookPages(value);
+        console.log("this._flattenBookPages", this._flattenBookPages)
         this.renderLauncher();
     }
 
@@ -125,6 +132,7 @@ export default class ScomBook extends Module {
         // this.updatePath();
         const cid = this.getCidByUuid(this._data, newPage.uuid)
         this.loadPageByCid(cid);
+        this.setButtons(this.pagesMenu.activePageUuid);
     }
 
     renderLauncher() {
@@ -135,14 +143,64 @@ export default class ScomBook extends Module {
         // set page viewer data
         const targetPageCid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
         this.loadPageByCid(targetPageCid);
+
+        // set buttons' UI
+        this.setButtons(this.pagesMenu.activePageUuid);
     }
 
-    private onClickedPrevPage() {
-
+    flatBookPages(pages: IBookPage[], flatArray: IBookPage[] = []): IBookPage[] {
+        for (const page of pages) {
+            flatArray.push(page);
+            if (page.pages && page.pages.length > 0) {
+                this.flatBookPages(page.pages, flatArray);
+            }
+        }
+        return flatArray;
     }
 
-    private onClickedNextPage() {
+    private prevPageOnClick() {
+        const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == this.pagesMenu.activePageUuid);
+        const prevPage = this._flattenBookPages[currentPageIndex - 1];
+        if (prevPage) this.pagesMenu.activePageUuid = prevPage.uuid;
+        const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid)
+        this.loadPageByCid(cid);
+        this.setButtons(this.pagesMenu.activePageUuid);
+    }
 
+    private nextPageOnClick() {
+        const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == this.pagesMenu.activePageUuid);
+        const nextPage = this._flattenBookPages[currentPageIndex + 1];
+        if (nextPage) this.pagesMenu.activePageUuid = nextPage.uuid;
+        const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid)
+        this.loadPageByCid(cid);
+        this.setButtons(this.pagesMenu.activePageUuid);
+    }
+
+    private setButtons(currentPageUUID: string) {
+        const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == currentPageUUID);
+        if (currentPageIndex != -1) {
+            // update UI of previous page button
+            if (currentPageIndex - 1 >= 0) {
+                const labelPrevCaption = this._flattenBookPages[currentPageIndex - 1].name;
+                this.labelPrev.caption = labelPrevCaption;
+                this.prevPage.classList.remove('hidden');
+            } else {
+                this.labelPrev.caption = "";
+                this.prevPage.classList.add('hidden');
+            }
+            // update UI of next page button
+            if (currentPageIndex + 1 < this._flattenBookPages.length) {
+                const labelNextCaption = this._flattenBookPages[currentPageIndex + 1].name;
+                this.labelNext.caption = labelNextCaption;
+                this.nextPage.classList.remove('hidden');
+            } else {
+                this.labelNext.caption = "";
+                this.nextPage.classList.add('hidden');
+            }
+        } else {
+            this.labelPrev.caption = "";
+            this.labelNext.caption = "";
+        }
     }
 
     // private updatePath(suffix?: string) {
@@ -189,13 +247,13 @@ export default class ScomBook extends Module {
     //     }
     // }
 
-
     render() {
         return (
             <i-hstack width="100%" height={'100%'}>
                 <i-panel id="menuWrapper" padding={{ top: '60px' }} width="300px" background={{ color: "#FAFAFA" }} height={'100%'}>
                     <i-scom-pages-menu
                         id={"pagesMenu"}
+                        mode='viewer'
                         onChanged={this.menuChanged}
                     />
                 </i-panel>
@@ -208,22 +266,24 @@ export default class ScomBook extends Module {
                             />
                         </i-panel>
                     </i-vstack>
-                    <i-hstack width="100%" height="15%" horizontalAlignment='space-between'>
-                        <i-hstack id="pnlPrevPage" class="pointer" onClick={this.onClickedPrevPage}>
-                            <i-icon name='arrow-left' width='15px' height='15px' />
-                            <i-vstack>
-                                <i-label caption="Previous"></i-label>
-                                <i-label id='lblPrevPage'></i-label>
-                            </i-vstack>
-                        </i-hstack>
-                        <i-hstack id="pnlNextPage" class="pointer" onClick={this.onClickedNextPage}>
-                            <i-vstack>
-                                <i-label caption="Next"></i-label>
-                                <i-label id='lblNextPage'></i-label>
-                            </i-vstack>
-                            <i-icon name='arrow-right' width='15px' height='15px' />
-                        </i-hstack>
-                    </i-hstack>
+                    <i-panel class={pagingStyle} width="100%" height="15%">
+                        <i-grid-layout class="paging" templateColumns={['1fr', '1fr']} gap={{ column: '1rem', row: '1rem' }}>
+                            <i-hstack id='prevPage' class='btnPaging prev hidden' horizontalAlignment='space-between' verticalAlignment='center' gap='1rem' onClick={this.prevPageOnClick}>
+                                <i-icon name='arrow-left'></i-icon>
+                                <i-vstack class='pager-content' horizontalAlignment='end' stack={{ grow: '1', shrink: '0', basis: '0%' }} overflow="hidden">
+                                    <i-label caption='Previous' class='pager-title1' font={{ size: '12px', color: '#9b9b9b' }}></i-label>
+                                    <i-label id='labelPrev' class='pager-title2' maxWidth="100%" font={{ size: '16px', weight: 600 }}></i-label>
+                                </i-vstack>
+                            </i-hstack>
+                            <i-hstack id='nextPage' class='btnPaging next hidden' horizontalAlignment='space-between' verticalAlignment='center' gap='1rem' onClick={this.nextPageOnClick}>
+                                <i-vstack class='pager-content' stack={{ grow: '1', shrink: '0', basis: '0%' }} overflow="hidden">
+                                    <i-label caption='Next' class='pager-title1' font={{ size: '12px', color: '#9b9b9b' }}></i-label>
+                                    <i-label id='labelNext' class='pager-title2' maxWidth="100%" font={{ size: '16px', weight: 600 }}></i-label>
+                                </i-vstack>
+                                <i-icon name='arrow-right'></i-icon>
+                            </i-hstack>
+                        </i-grid-layout>
+                    </i-panel>
                 </i-vstack>
             </i-hstack>
         )

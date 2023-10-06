@@ -1,6 +1,7 @@
 /// <amd-module name="@scom/scom-book/index.css.ts" />
 declare module "@scom/scom-book/index.css.ts" {
     export const viewerStyle: string;
+    export const pagingStyle: string;
 }
 /// <amd-module name="@scom/scom-book/interface.ts" />
 declare module "@scom/scom-book/interface.ts" {
@@ -34,6 +35,11 @@ declare module "@scom/scom-book" {
         private pagesMenu;
         private baseUrl;
         private cidMap;
+        private labelNext;
+        private labelPrev;
+        private nextPage;
+        private prevPage;
+        private _flattenBookPages;
         static create(options?: ScomBookElement, parent?: Container): Promise<ScomBook>;
         constructor(parent?: Container, options?: ScomBookElement);
         setData(value: IBookPage[]): void;
@@ -46,8 +52,10 @@ declare module "@scom/scom-book" {
         private initEventListener;
         private menuChanged;
         renderLauncher(): void;
-        private onClickedPrevPage;
-        private onClickedNextPage;
+        flatBookPages(pages: IBookPage[], flatArray?: IBookPage[]): IBookPage[];
+        private prevPageOnClick;
+        private nextPageOnClick;
+        private setButtons;
         render(): any;
     }
 }
