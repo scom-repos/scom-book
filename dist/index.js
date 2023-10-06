@@ -180,7 +180,7 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
             this.initEventListener();
             this._data = this.getAttribute('data', true);
             this.renderLauncher();
-            this.baseUrl = "...";
+            this.baseUrl = "";
         }
         async loadPageByCid(cid) {
             const existedPage = this.cidMap.get(cid);
@@ -188,18 +188,25 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
             if (existedPage) {
                 // loaded page
                 await this.pageViewer.setData(existedPage);
+                this.pageViewer.visible = true;
             }
             else {
                 // new page
-                try {
-                    let response = await fetch('https://ipfs.scom.dev/ipfs/' + cid);
-                    pageConfig = await response.json();
+                if (cid) {
+                    try {
+                        let response = await fetch('https://ipfs.scom.dev/ipfs/' + cid);
+                        pageConfig = await response.json();
+                        this.cidMap.set(cid, pageConfig);
+                        await this.pageViewer.setData(pageConfig);
+                        this.pageViewer.visible = true;
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
                 }
-                catch (err) {
-                    console.log(err);
+                else {
+                    this.pageViewer.visible = false;
                 }
-                this.cidMap.set(cid, pageConfig);
-                await this.pageViewer.setData(pageConfig);
             }
         }
         convertPagesToMenuItems(pages) {
@@ -258,18 +265,14 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
             const prevPage = this._flattenBookPages[currentPageIndex - 1];
             if (prevPage)
                 this.pagesMenu.activePageUuid = prevPage.uuid;
-            const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
-            this.loadPageByCid(cid);
-            this.setButtons(this.pagesMenu.activePageUuid);
+            this.renderLauncher();
         }
         nextPageOnClick() {
             const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == this.pagesMenu.activePageUuid);
             const nextPage = this._flattenBookPages[currentPageIndex + 1];
             if (nextPage)
                 this.pagesMenu.activePageUuid = nextPage.uuid;
-            const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
-            this.loadPageByCid(cid);
-            this.setButtons(this.pagesMenu.activePageUuid);
+            this.renderLauncher();
         }
         setButtons(currentPageUUID) {
             const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == currentPageUUID);

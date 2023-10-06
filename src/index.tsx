@@ -74,7 +74,7 @@ export default class ScomBook extends Module {
         this.initEventListener();
         this._data = this.getAttribute('data', true);
         this.renderLauncher();
-        this.baseUrl = "..."
+        this.baseUrl = ""
     }
 
     private async loadPageByCid(cid: string) {
@@ -83,16 +83,22 @@ export default class ScomBook extends Module {
         if (existedPage) {
             // loaded page
             await this.pageViewer.setData(existedPage);
+            this.pageViewer.visible = true;
         } else {
             // new page
-            try {
-                let response = await fetch('https://ipfs.scom.dev/ipfs/' + cid);
-                pageConfig = await response.json();
-            } catch (err) {
-                console.log(err)
+            if (cid) {
+                try {
+                    let response = await fetch('https://ipfs.scom.dev/ipfs/' + cid);
+                    pageConfig = await response.json();
+                    this.cidMap.set(cid, pageConfig);
+                    await this.pageViewer.setData(pageConfig);
+                    this.pageViewer.visible = true;
+                } catch (err) {
+                    console.log(err)
+                }
+            } else {
+                this.pageViewer.visible = false;
             }
-            this.cidMap.set(cid, pageConfig);
-            await this.pageViewer.setData(pageConfig);
         }
     }
 
@@ -162,18 +168,14 @@ export default class ScomBook extends Module {
         const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == this.pagesMenu.activePageUuid);
         const prevPage = this._flattenBookPages[currentPageIndex - 1];
         if (prevPage) this.pagesMenu.activePageUuid = prevPage.uuid;
-        const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid)
-        this.loadPageByCid(cid);
-        this.setButtons(this.pagesMenu.activePageUuid);
+        this.renderLauncher();
     }
 
     private nextPageOnClick() {
         const currentPageIndex = this._flattenBookPages.findIndex(page => page.uuid == this.pagesMenu.activePageUuid);
         const nextPage = this._flattenBookPages[currentPageIndex + 1];
         if (nextPage) this.pagesMenu.activePageUuid = nextPage.uuid;
-        const cid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid)
-        this.loadPageByCid(cid);
-        this.setButtons(this.pagesMenu.activePageUuid);
+        this.renderLauncher();
     }
 
     private setButtons(currentPageUUID: string) {
