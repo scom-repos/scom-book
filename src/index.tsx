@@ -21,7 +21,7 @@ export { IBookPage }
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomBookElement extends ControlElement {
-    data: IBookPage[]
+    data?: IBookPage[]
 }
 
 declare global {
@@ -52,6 +52,15 @@ export default class ScomBook extends Module {
         super(parent, options);
     }
 
+    setData(value: IBookPage[]) {
+        this._data = value;
+        this.renderLauncher();
+    }
+
+    getData(): IBookPage[] {
+        return this._data;
+    }
+
     init() {
         super.init();
         this.initEventBus();
@@ -62,7 +71,6 @@ export default class ScomBook extends Module {
     }
 
     private async loadPageByCid(cid: string) {
-        console.log("loadPageByCid")
         const existedPage = this.cidMap.get(cid);
         let pageConfig: any;
         if (existedPage) {
@@ -113,15 +121,18 @@ export default class ScomBook extends Module {
 
     private initEventListener() { }
 
-    private menuChanged(newPage: any, oldPage: any) {
+    private async menuChanged(newPage: any, oldPage: any) {
         // this.updatePath();
-
+        const cid = this.getCidByUuid(this._data, newPage.uuid)
+        this.loadPageByCid(cid);
     }
 
     renderLauncher() {
         console.log("renderLauncher")
+        // set menu data
         this.pagesMenu.setData({ pages: this.convertPagesToMenuItems(this._data) });
-        // const targetPageCid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
+
+        // set page viewer data
         const targetPageCid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
         this.loadPageByCid(targetPageCid);
     }

@@ -19,7 +19,7 @@ declare module "@scom/scom-book" {
     import { IBookPage } from "@scom/scom-book/interface.ts";
     export { IBookPage };
     interface ScomBookElement extends ControlElement {
-        data: IBookPage[];
+        data?: IBookPage[];
     }
     global {
         namespace JSX {
@@ -36,6 +36,8 @@ declare module "@scom/scom-book" {
         private cidMap;
         static create(options?: ScomBookElement, parent?: Container): Promise<ScomBook>;
         constructor(parent?: Container, options?: ScomBookElement);
+        setData(value: IBookPage[]): void;
+        getData(): IBookPage[];
         init(): void;
         private loadPageByCid;
         private convertPagesToMenuItems;

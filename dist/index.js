@@ -36,6 +36,13 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
             super(parent, options);
             this.cidMap = new Map(); // <cid, sconfig>
         }
+        setData(value) {
+            this._data = value;
+            this.renderLauncher();
+        }
+        getData() {
+            return this._data;
+        }
         init() {
             super.init();
             this.initEventBus();
@@ -45,7 +52,6 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
             this.baseUrl = "...";
         }
         async loadPageByCid(cid) {
-            console.log("loadPageByCid");
             const existedPage = this.cidMap.get(cid);
             let pageConfig;
             if (existedPage) {
@@ -91,13 +97,16 @@ define("@scom/scom-book", ["require", "exports", "@ijstech/components", "@scom/s
         }
         initEventBus() { }
         initEventListener() { }
-        menuChanged(newPage, oldPage) {
+        async menuChanged(newPage, oldPage) {
             // this.updatePath();
+            const cid = this.getCidByUuid(this._data, newPage.uuid);
+            this.loadPageByCid(cid);
         }
         renderLauncher() {
             console.log("renderLauncher");
+            // set menu data
             this.pagesMenu.setData({ pages: this.convertPagesToMenuItems(this._data) });
-            // const targetPageCid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
+            // set page viewer data
             const targetPageCid = this.getCidByUuid(this._data, this.pagesMenu.activePageUuid);
             this.loadPageByCid(targetPageCid);
         }
